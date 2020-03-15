@@ -29,7 +29,7 @@ import pandas as pd
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
-import random
+import random, json
 import copy
 import itertools
 from collections import deque
@@ -3484,7 +3484,7 @@ def align_fbranch_with_tree(fbranch, tree, outgroup, ladderize=False):
     return fb, tree_no
 
 
-def plot_fbranch(fbranch, tree_no_outgroup, leaves_to_present=True,
+def plot_fbranch(fbranch, tree_no_outgroup, max_color_cutoff=1, leaves_to_present=True, 
                  use_distances=False,
                  debug=False):
     #print("1706")
@@ -3537,7 +3537,7 @@ def plot_fbranch(fbranch, tree_no_outgroup, leaves_to_present=True,
 
     fmax = branch_mat0.max().max()
     fmin = branch_mat0.min().min()
-    colors = np.concatenate([[[1, 1, 1, 1]], plt.cm.Reds(np.linspace(0., 1 * fmax / 0.15, 256))])
+    colors = np.concatenate([[[1, 1, 1, 1]], plt.cm.Reds(np.linspace(0., 1 * fmax / max_color_cutoff, 256))])
     mymap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', colors)
 
     plt.pcolormesh(branch_mat0_masked, cmap=mymap, rasterized=True)  # ,cmap=jet
@@ -3598,6 +3598,8 @@ def main():
                             help="Base file name for output plots.",default="fbranch")
     argparser.add_argument( "--outgroup", type=str,
                         help="Outgroup name in newick file.",default="Outgroup")
+    argparser.add_argument("-m", "--max-color-cutoff", type=float,
+                            help="Fbranch values larger than this value will all show in the same dark red.",default=1.)
     argparser.add_argument("--use_distances",
                            help="Use actual node distances from newick file when plotting tree.",
                            action='store_true')
@@ -3618,7 +3620,8 @@ def main():
     else:
         leaves_to_present = True
 
-    plot_fbranch(fb1, tree_no_outgroup, use_distances=args.use_distances,
+    plot_fbranch(fb1, tree_no_outgroup, max_color_cutoff=args.max_color_cutoff,
+                 use_distances=args.use_distances,
                  leaves_to_present=leaves_to_present)
     plt.savefig(args.run_name+'.svg', bbox_inches='tight')
     plt.savefig(args.run_name+'.png', bbox_inches='tight', dpi=150)
